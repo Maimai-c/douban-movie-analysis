@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        /* 优化：使用 flex-grow 确保所有卡片等高 */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+            align-items: stretch; /* 新增：确保网格项等高 */
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* 关键：占满网格单元格高度 */
+        }
+        
+        .chart-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .chart-title {
+            font-size: 1.4em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0; /* 防止标题区域被压缩 */
+        }
+        
+        .chart-title i {
+            margin-right: 10px;
+            color: #667eea;
+        }
+        
+        /* 优化：统一图表容器高度，使用 flex-grow 填充剩余空间 */
+        .chart-wrapper {
+            width: 100%;
+            min-height: 450px; /* 最小高度，确保足够空间 */
+            height: 450px; /* 固定高度，确保整齐 */
+            position: relative;
+            overflow: hidden; /* 隐藏溢出，保持整齐 */
+            display: block;
+            flex-grow: 1; /* 关键：填充容器剩余高度 */
+        }
+        
+        /* 确保所有图表内部的div填充容器 */
+        .chart-wrapper > div {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95em;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .btn-tertiary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        }
+        
+        .data-info {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .data-info h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .info-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                padding: 18px;
+            }
+            
+            .chart-wrapper {
+                height: 400px;
+                min-height: 400px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .chart-container {
+                padding: 15px;
+            }
+            
+            .chart-wrapper {
+                height: 350px;
+                min-height: 350px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                text-align: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .chart-wrapper {
+                height: 300px;
+                min-height: 300px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .chart-title {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 页眉 -->
+        <div class="header">
+            <h1><i class="fas fa-film"></i> {{ title }}</h1>
+            <p>基于豆瓣TOP250电影数据的多维度分析与可视化展示</p>
+        </div>
+        
+        <!-- 图表区域 - 2x2网格 -->
+        <div class="dashboard">
+            <!-- 评分分布图 -->
+            <div class="chart-container">
+                <h2 class="chart-title"><i class="fas fa-chart-bar"></i> 电影评分分布</h2>
+                <div class="chart-wrapper">
+                    {{ bar_chart|safe }}
+                </div>
+            </div>
+            
+            <!-- 类型分布图 -->
+            <div class="chart-container">
+                <h2 class="chart-title"><i class="fas fa-chart-pie"></i> 电影类型分布</h2>
+                <div class="chart-wrapper">
+                    {{ pie_chart|safe }}
+                </div>
+            </div>
+            
+            <!-- 年度趋势图 -->
+            <div class="chart-container">
+                <h2 class="chart-title"><i class="fas fa-chart-line"></i> 电影年度趋势</h2>
+                <div class="chart-wrapper">
+                    {{ line_chart|safe }}
+                </div>
+            </div>
+            
+            <!-- 导演作品排行图 (新增) -->
+            <div class="chart-container">
+                <h2 class="chart-title"><i class="fas fa-crown"></i> 导演作品数量排行</h2>
+                <div class="chart-wrapper">
+                    {{ director_chart|safe }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- 数据概览 -->
+        <div class="data-info">
+            <h3><i class="fas fa-info-circle"></i> 数据概览</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">数据来源：</span>
+                    <span class="info-value">豆瓣电影TOP250</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">总电影数量：</span>
+                    <span class="info-value">250部</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">最主流类型：</span>
+                    <span class="info-value">剧情片 (85部)</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">高产导演：</span>
+                    <span class="info-value">宫崎骏 (8部)</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 导航按钮 -->
+        <div class="nav-buttons">
+            <a href="/score_distribution" class="btn" target="_blank">
+                <i class="fas fa-external-link-alt"></i> 单独查看评分分布
+            </a>
+            <a href="/genre_distribution" class="btn btn-secondary" target="_blank">
+                <i class="fas fa-external-link-alt"></i> 单独查看类型分布
+            </a>
+            <a href="/year_trend" class="btn btn-tertiary" target="_blank">
+                <i class="fas fa-external-link-alt"></i> 单独查看年度趋势
+            </a>
+            <a href="/director_ranking" class="btn btn-warning" target="_blank">
+                <i class="fas fa-external-link-alt"></i> 单独查看导演排行
+            </a>
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <div class="footer">
+        <p>© 2024 豆瓣电影数据分析系统 | 数据更新时间: {{ now.strftime('%Y-%m-%d %H:%M:%S') if now else 'N/A' }}</p>
+        <p>注：本系统数据仅供学习研究使用，来源于豆瓣电影TOP250榜单</p>
+    </div>
+    
+    <script>
+        // 页面交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 图表容器加载动画
+            const chartContainers = document.querySelectorAll('.chart-container');
+            chartContainers.forEach((container, index) => {
+                container.style.opacity = '0';
+                container.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    container.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    container.style.opacity = '1';
+                    container.style.transform = 'translateY(0)';
+                }, 100 + index * 100);
+            });
+            
+            // 按钮点击效果
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.cssText = `
+                        position: absolute;
+                        border-radius: 50%;
+                        background: rgba(255, 255, 255, 0.7);
+                        transform: scale(0);
+                        animation: ripple 0.6s linear;
+                        width: ${size}px;
+                        height: ${size}px;
+                        top: ${y}px;
+                        left: ${x}px;
+                        pointer-events: none;
+                    `;
+                    
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+        });
+        
+        // 涟漪动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
