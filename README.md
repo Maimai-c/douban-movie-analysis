@@ -13,6 +13,9 @@
 2.  **启动应用**：`python app.py`
 3.  **访问应用**：在浏览器打开 `http://localhost:5000`
 
+## 系统截图
+![豆瓣电影数据分析系统仪表盘截图](screenshots/dashboard.png)
+
 ## 项目结构
 核心文件包括：
 - `app.py` - 主程序
